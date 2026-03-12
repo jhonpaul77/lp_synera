@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNERA — Form Registrasi Implementasi</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090b;
+  --bg2:#111114;
+  --surface:#18181b;
+  --surface2:#1f1f23;
+  --border:#2a2a30;
+  --border2:#3a3a42;
+  --text:#f4f4f5;
+  --text2:#a1a1aa;
+  --text3:#71717a;
+  --cyan:#06b6d4;
+  --cyan-dim:rgba(6,182,212,.1);
+  --cyan-glow:rgba(6,182,212,.25);
+  --green:#22c55e;
+  --green-dim:rgba(34,197,94,.1);
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;color:#111}
+  .no-print{display:none!important}
+  .form-wrap{box-shadow:none;border:1px solid #ddd;max-width:100%}
+  .form-header{background:#09090b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .section-card{border:1px solid #e5e5e5;background:#fff}
+  input,select,textarea{border:1px solid #ccc!important;background:#fff!important;color:#111!important}
+  .check-label{color:#111!important}
+  .submit-btn{display:none}
+  .sig-pad{border:1.5px solid #ccc!important;background:#fafafa!important}
+  .section-num{background:#09090b!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* ── LAYOUT ── */
+.page{
+  max-width:780px;margin:0 auto;
+  padding:2.5rem 1.25rem 4rem;
+}
+
+/* ── HEADER ── */
+.form-header{
+  background:linear-gradient(135deg,#0d1a1a 0%,#0a0a0f 100%);
+  border:1px solid rgba(6,182,212,.2);
+  border-radius:20px;
+  padding:2.25rem 2.5rem;
+  margin-bottom:1.5rem;
+  position:relative;overflow:hidden;
+}
+.form-header::before{
+  content:'';position:absolute;top:-60px;right:-60px;
+  width:200px;height:200px;border-radius:50%;
+  background:radial-gradient(circle,rgba(6,182,212,.2),transparent 70%);
+  pointer-events:none;
+}
+.header-top{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+.logo-mark{
+  display:flex;align-items:center;gap:.6rem;
+}
+.logo-box{
+  width:36px;height:36px;border-radius:9px;
+  background:linear-gradient(135deg,var(--cyan),#0891b2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.8rem;font-weight:900;color:#fff;letter-spacing:-.05em;
+  flex-shrink:0;
+}
+.logo-name{font-size:1.1rem;font-weight:800;color:#fff;letter-spacing:-.02em}
+.doc-badge{
+  background:var(--cyan-dim);border:1px solid rgba(6,182,212,.25);
+  color:var(--cyan);font-size:.7rem;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:.3rem .8rem;border-radius:6px;
+}
+.form-header h1{
+  font-size:1.45rem;font-weight:800;color:#fff;
+  letter-spacing:-.025em;line-height:1.2;margin-bottom:.4rem;
+}
+.form-header p{font-size:.85rem;color:var(--text2);line-height:1.6}
+.header-meta{
+  display:flex;gap:1.5rem;flex-wrap:wrap;
+  margin-top:1.25rem;padding-top:1.25rem;
+  border-top:1px solid rgba(255,255,255,.07);
+}
+.meta-item{font-size:.78rem;color:var(--text3)}
+.meta-item span{color:var(--cyan);font-weight:600}
+
+/* ── PROGRESS ── */
+.progress-bar{
+  display:flex;align-items:center;justify-content:center;
+  gap:0;margin-bottom:1.75rem;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:.6rem 1rem;overflow-x:auto;
+}
+.prog-step{
+  display:flex;align-items:center;gap:.4rem;
+  font-size:.72rem;font-weight:600;color:var(--text3);
+  white-space:nowrap;padding:.2rem .4rem;border-radius:6px;
+  cursor:pointer;transition:color .2s;
+}
+.prog-step.done{color:var(--cyan)}
+.prog-step .sn{
+  width:18px;height:18px;border-radius:50%;
+  background:var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:700;color:var(--text3);
+  flex-shrink:0;
+}
+.prog-step.done .sn{background:var(--cyan);color:var(--bg)}
+.prog-sep{width:20px;height:1px;background:var(--border);flex-shrink:0;margin:0 .15rem}
+
+/* ── SECTION CARD ── */
+.section-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  margin-bottom:1rem;
+  overflow:hidden;
+  transition:border-color .2s;
+}
+.section-card:focus-within{border-color:var(--border2)}
+
+.section-head{
+  display:flex;align-items:center;gap:.9rem;
+  padding:1.1rem 1.5rem;
+  border-bottom:1px solid var(--border);
+  background:var(--surface2);
+}
+.section-num{
+  width:28px;height:28px;border-radius:8px;
+  background:var(--cyan);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:800;color:var(--bg);
+  flex-shrink:0;
+}
+.section-head h2{font-size:.9rem;font-weight:700;color:var(--text);letter-spacing:-.01em}
+.section-head p{font-size:.75rem;color:var(--text3);margin-top:.1rem}
+
+.section-body{padding:1.4rem 1.5rem;display:flex;flex-direction:column;gap:1rem}
+
+/* ── FORM FIELDS ── */
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+.field-row.solo{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:.4rem}
+
+label{
+  font-size:.78rem;font-weight:600;color:var(--text2);
+  display:flex;align-items:center;gap:.35rem;
+}
+label .req{color:var(--cyan);font-size:.85rem;line-height:1}
+label .opt{
+  font-size:.65rem;font-weight:500;color:var(--text3);
+  background:var(--surface2);border:1px solid var(--border);
+  padding:.1rem .4rem;border-radius:4px;letter-spacing:.04em;
+}
+
+input[type=text],input[type=email],input[type=tel],input[type=number],
+select,textarea{
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:9px;
+  padding:.65rem .9rem;
+  font-family:inherit;font-size:.85rem;color:var(--text);
+  transition:border-color .2s,box-shadow .2s;
+  outline:none;width:100%;
+}
+input::placeholder,textarea::placeholder{color:var(--text3)}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px var(--cyan-dim);
+}
+select{cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .75rem center;
+  padding-right:2.25rem;
+}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+
+/* ── CHECKBOX GROUP ── */
+.check-group{display:flex;flex-direction:column;gap:.55rem}
+.check-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem .5rem}
+.check-row.four{grid-template-columns:repeat(4,1fr)}
+.check-label{
+  display:flex;align-items:center;gap:.6rem;
+  font-size:.83rem;color:var(--text2);
+  cursor:pointer;padding:.5rem .75rem;
+  border:1px solid var(--border);border-radius:9px;
+  background:var(--bg2);
+  transition:all .18s;user-select:none;
+}
+.check-label:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
+.check-label input{display:none}
+.check-label .box{
+  width:16px;height:16px;border-radius:4px;
+  border:1.5px solid var(--border2);
+  background:transparent;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s;
+}
+.check-label input:checked ~ .box{
+  background:var(--cyan);border-color:var(--cyan);
+}
+.check-label input:checked ~ .box::after{
+  content:'✓';font-size:.65rem;color:var(--bg);font-weight:800;
+}
+.check-label:has(input:checked){
+  border-color:rgba(6,182,212,.35);
+  background:var(--cyan-dim);color:var(--text);
+}
+
+/* radio */
+.radio-group{display:flex;flex-direction:column;gap:.4rem}
+.radio-row{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.radio-label{
+  display:flex;align-items:center;gap:.6rem;
+  font-size:.83rem;color:var(--text2);
+  cursor:pointer;padding:.5rem .75rem;
+  border:1px solid var(--border);border-radius:9px;
+  background:var(--bg2);
+  transition:all .18s;user-select:none;
+}
+.radio-label:hover{border-color:var(--border2);color:var(--text);background:var(--surface2)}
+.radio-label input{display:none}
+.radio-label .dot-outer{
+  width:16px;height:16px;border-radius:50%;
+  border:1.5px solid var(--border2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .18s;
+}
+.radio-label input:checked ~ .dot-outer{border-color:var(--cyan);background:var(--cyan)}
+.radio-label input:checked ~ .dot-outer::after{
+  content:'';width:5px;height:5px;border-radius:50%;background:var(--bg);
+}
+.radio-label:has(input:checked){border-color:rgba(6,182,212,.35);background:var(--cyan-dim);color:var(--text)}
+
+/* ── PACKAGE CARDS ── */
+.pkg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.pkg-card{
+  border:1.5px solid var(--border);border-radius:12px;
+  background:var(--bg2);cursor:pointer;
+  transition:all .2s;overflow:hidden;
+}
+.pkg-card:hover{border-color:var(--border2)}
+.pkg-card input{display:none}
+.pkg-inner{padding:1rem;display:flex;flex-direction:column;gap:.35rem}
+.pkg-icon{font-size:1.25rem;margin-bottom:.1rem}
+.pkg-name{font-size:.88rem;font-weight:700;color:var(--text)}
+.pkg-price{font-size:.78rem;color:var(--cyan);font-weight:600}
+.pkg-desc{font-size:.72rem;color:var(--text3);line-height:1.45}
+.pkg-card:has(input:checked){border-color:var(--cyan);background:var(--cyan-dim)}
+.pkg-card:has(input:checked) .pkg-name{color:#fff}
+.pkg-card:has(input:checked) .pkg-desc{color:rgba(255,255,255,.55)}
+
+/* ── SIGNATURE ── */
+.sig-row{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+.sig-pad-wrap{display:flex;flex-direction:column;gap:.4rem}
+.sig-pad-wrap label{font-size:.78rem;font-weight:600;color:var(--text2)}
+.sig-pad{
+  width:100%;height:100px;
+  background:var(--bg2);border:1.5px dashed var(--border2);
+  border-radius:9px;display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;color:var(--text3);cursor:crosshair;
+  position:relative;
+  transition:border-color .2s;
+}
+.sig-pad:hover{border-color:var(--border2)}
+.sig-pad canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:9px}
+.sig-clear{
+  font-size:.7rem;color:var(--text3);background:none;border:none;
+  cursor:pointer;font-family:inherit;padding:0;
+  text-decoration:underline;align-self:flex-end;margin-top:.2rem;
+}
+.sig-clear:hover{color:var(--cyan)}
+
+/* ── AGREEMENT ── */
+.agreement-box{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:1.1rem 1.25rem;
+  font-size:.8rem;color:var(--text2);line-height:1.7;
+}
+.agreement-box p{margin-bottom:.5rem}
+.agreement-box strong{color:var(--text)}
+
+/* ── SUBMIT ── */
+.submit-section{
+  margin-top:1.5rem;
+  display:flex;flex-direction:column;align-items:center;gap:1rem;
+}
+.submit-btn{
+  width:100%;max-width:400px;
+  background:var(--cyan);color:var(--bg);
+  font-family:inherit;font-size:1rem;font-weight:700;
+  border:none;border-radius:12px;padding:1rem;
+  cursor:pointer;letter-spacing:-.01em;
+  transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:.5rem;
+}
+.submit-btn:hover{background:#22d3ee;box-shadow:0 12px 32px var(--cyan-glow);transform:translateY(-2px)}
+.submit-note{font-size:.75rem;color:var(--text3);text-align:center}
+
+/* ── PRINT BTN ── */
+.action-bar{
+  display:flex;justify-content:flex-end;gap:.6rem;margin-bottom:1rem;
+}
+.btn-sm{
+  display:flex;align-items:center;gap:.4rem;
+  font-family:inherit;font-size:.78rem;font-weight:600;
+  padding:.45rem .9rem;border-radius:8px;cursor:pointer;
+  transition:all .2s;text-decoration:none;
+  background:var(--surface);border:1px solid var(--border2);color:var(--text2);
+}
+.btn-sm:hover{color:var(--text);border-color:#555}
+.btn-sm.cyan{background:var(--cyan-dim);border-color:rgba(6,182,212,.3);color:var(--cyan)}
+.btn-sm.cyan:hover{background:rgba(6,182,212,.2)}
+
+/* success */
+.success-screen{
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  text-align:center;padding:4rem 2rem;min-height:60vh;
+}
+.success-screen.show{display:flex}
+.form-content.hide{display:none}
+.success-icon{
+  width:72px;height:72px;border-radius:50%;
+  background:var(--green-dim);border:2px solid rgba(34,197,94,.3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;margin-bottom:1.5rem;
+}
+.success-screen h2{font-size:1.5rem;font-weight:800;color:#fff;margin-bottom:.6rem}
+.success-screen p{color:var(--text2);font-size:.9rem;line-height:1.7;max-width:400px}
+
+@media(max-width:600px){
+  .field-row{grid-template-columns:1fr}
+  .check-row{grid-template-columns:1fr 1fr}
+  .check-row.four{grid-template-columns:repeat(2,1fr)}
+  .pkg-grid{grid-template-columns:1fr}
+  .sig-row{grid-template-columns:1fr}
+  .radio-row{grid-template-columns:1fr}
+  .form-header{padding:1.5rem 1.25rem}
+  .section-body{padding:1.1rem 1.1rem}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ACTION BAR -->
+  <div class="action-bar no-print">
+    <button class="btn-sm" onclick="window.print()">🖨 Print / PDF</button>
+    <button class="btn-sm cyan" onclick="document.getElementById('regForm').reset();resetCheckboxes()">↺ Reset Form</button>
+  </div>
+
+  <!-- HEADER -->
+  <div class="form-header">
+    <div class="header-top">
+      <div class="logo-mark">
+        <div class="logo-box">SY</div>
+        <div class="logo-name">SYNERA</div>
+      </div>
+      <div class="doc-badge">Registrasi Klien</div>
+    </div>
+    <h1>Form Registrasi Implementasi<br>Sistem Bisnis</h1>
+    <p>Lengkapi form ini untuk memulai proses penawaran dan implementasi SYNERA. Pengisian membutuhkan sekitar 3–5 menit.</p>
+    <div class="header-meta">
+      <div class="meta-item">Tanggal <span id="todayDate"></span></div>
+      <div class="meta-item">No. Registrasi <span id="regNum"></span></div>
+      <div class="meta-item">Produk <span>SYNERA ERP</span></div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-bar no-print">
+    <div class="prog-step done"><div class="sn">1</div> Perusahaan</div>
+    <div class="prog-sep"></div>
+    <div class="prog-step done"><div class="sn">2</div> PIC</div>
+    <div class="prog-sep"></div>
+    <div class="prog-step done"><div class="sn">3</div> Operasional</div>
+    <div class="prog-sep"></div>
+    <div class="prog-step done"><div class="sn">4</div> Modul</div>
+    <div class="prog-sep"></div>
+    <div class="prog-step done"><div class="sn">5</div> Paket</div>
+    <div class="prog-sep"></div>
+    <div class="prog-step done"><div class="sn">6</div> Catatan</div>
+    <div class="prog-sep"></div>
+    <div class="prog-step done"><div class="sn">7</div> Persetujuan</div>
+  </div>
+
+  <!-- FORM -->
+  <div class="form-content" id="formContent">
+  <form id="regForm" autocomplete="off">
+
+    <!-- 1. DATA PERUSAHAAN -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">1</div>
+        <div>
+          <h2>Data Perusahaan</h2>
+          <p>Informasi legal dan profil bisnis</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Nama Perusahaan <span class="req">*</span></label>
+            <input type="text" placeholder="PT / CV / UD / Nama usaha" required>
+          </div>
+          <div class="field">
+            <label>Nama Brand / Toko <span class="opt">opsional</span></label>
+            <input type="text" placeholder="Jika berbeda dari nama perusahaan">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Bidang Usaha <span class="req">*</span></label>
+            <input type="text" placeholder="Contoh: Retail, Distribusi, Manufaktur">
+          </div>
+          <div class="field">
+            <label>Kota <span class="req">*</span></label>
+            <input type="text" placeholder="Kota domisili perusahaan">
+          </div>
+        </div>
+        <div class="field field-row solo">
+          <label>Alamat Perusahaan</label>
+          <input type="text" placeholder="Jalan, nomor, kelurahan, kecamatan">
+        </div>
+        <div class="field field-row solo">
+          <label>Website / Marketplace <span class="opt">opsional</span></label>
+          <input type="text" placeholder="Contoh: tokopedia.com/namatoko atau www.website.com">
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. KONTAK PIC -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">2</div>
+        <div>
+          <h2>Kontak PIC (Penanggung Jawab)</h2>
+          <p>Orang yang bisa dihubungi untuk proses implementasi</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Nama PIC <span class="req">*</span></label>
+            <input type="text" placeholder="Nama lengkap" required>
+          </div>
+          <div class="field">
+            <label>Jabatan <span class="req">*</span></label>
+            <input type="text" placeholder="Contoh: Direktur, Manajer, Owner">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Nomor WhatsApp <span class="req">*</span></label>
+            <input type="tel" placeholder="08xx-xxxx-xxxx" required>
+          </div>
+          <div class="field">
+            <label>Email <span class="req">*</span></label>
+            <input type="email" placeholder="email@perusahaan.com" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. INFORMASI OPERASIONAL -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">3</div>
+        <div>
+          <h2>Informasi Operasional</h2>
+          <p>Membantu kami menyiapkan konfigurasi yang tepat</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field-row">
+          <div class="field">
+            <label>Jumlah Karyawan</label>
+            <div class="check-group">
+              <div class="check-row four">
+                <label class="radio-label"><input type="radio" name="emp" value="1-5"><span class="dot-outer"></span>1–5</label>
+                <label class="radio-label"><input type="radio" name="emp" value="6-20"><span class="dot-outer"></span>6–20</label>
+                <label class="radio-label"><input type="radio" name="emp" value="21-50"><span class="dot-outer"></span>21–50</label>
+                <label class="radio-label"><input type="radio" name="emp" value=">50"><span class="dot-outer"></span>&gt;50</label>
+              </div>
+            </div>
+          </div>
+          <div class="field">
+            <label>Jumlah User Sistem</label>
+            <input type="number" placeholder="Estimasi jumlah pengguna sistem" min="1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Sistem yang Digunakan Saat Ini</label>
+          <div class="check-row">
+            <label class="check-label"><input type="checkbox" name="current_sys" value="excel"><span class="box"></span>Excel / Google Sheet</label>
+            <label class="check-label"><input type="checkbox" name="current_sys" value="software"><span class="box"></span>Software lain</label>
+            <label class="check-label"><input type="checkbox" name="current_sys" value="manual"><span class="box"></span>Manual / Belum ada sistem</label>
+            <label class="check-label"><input type="checkbox" name="current_sys" value="erp"><span class="box"></span>ERP sebelumnya</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. MODUL -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">4</div>
+        <div>
+          <h2>Modul yang Akan Digunakan</h2>
+          <p>Pilih semua modul yang dibutuhkan — semua sudah termasuk dalam paket</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="check-row">
+          <label class="check-label"><input type="checkbox" name="module" value="sales"><span class="box"></span>Sales</label>
+          <label class="check-label"><input type="checkbox" name="module" value="crm"><span class="box"></span>CRM</label>
+          <label class="check-label"><input type="checkbox" name="module" value="inventory"><span class="box"></span>Inventory</label>
+          <label class="check-label"><input type="checkbox" name="module" value="purchase"><span class="box"></span>Purchase</label>
+          <label class="check-label"><input type="checkbox" name="module" value="accounting"><span class="box"></span>Accounting</label>
+          <label class="check-label"><input type="checkbox" name="module" value="project"><span class="box"></span>Project Management</label>
+          <label class="check-label"><input type="checkbox" name="module" value="marketplace"><span class="box"></span>Marketplace Integration</label>
+          <label class="check-label"><input type="checkbox" name="module" value="expenses"><span class="box"></span>Expenses</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. PAKET -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">5</div>
+        <div>
+          <h2>Paket Layanan</h2>
+          <p>Pilih paket yang sesuai — bisa upgrade kapan saja</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="pkg-grid">
+          <label class="pkg-card">
+            <input type="radio" name="package" value="basic">
+            <div class="pkg-inner">
+              <div class="pkg-icon">🚀</div>
+              <div class="pkg-name">SYNERA Basic</div>
+              <div class="pkg-price">Rp 2,25 jt / bulan</div>
+              <div class="pkg-desc">Training 3 hari · Support 2× / bulan</div>
+            </div>
+          </label>
+          <label class="pkg-card">
+            <input type="radio" name="package" value="growth">
+            <div class="pkg-inner">
+              <div class="pkg-icon">⭐</div>
+              <div class="pkg-name">SYNERA Growth</div>
+              <div class="pkg-price">Rp 3 jt / bulan</div>
+              <div class="pkg-desc">Training 4 hari · Custom 10 jam · Onsite</div>
+            </div>
+          </label>
+          <label class="pkg-card">
+            <input type="radio" name="package" value="pro">
+            <div class="pkg-inner">
+              <div class="pkg-icon">💎</div>
+              <div class="pkg-name">SYNERA Pro</div>
+              <div class="pkg-price">Rp 4 jt / bulan</div>
+              <div class="pkg-desc">Full managed · Custom 30 jam · Weekly meeting</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="field" style="margin-top:.5rem">
+          <label>Estimasi Mulai Implementasi</label>
+          <div class="radio-row">
+            <label class="radio-label"><input type="radio" name="start" value="segera"><span class="dot-outer"></span>Segera (minggu ini)</label>
+            <label class="radio-label"><input type="radio" name="start" value="1bulan"><span class="dot-outer"></span>Dalam 1 bulan</label>
+            <label class="radio-label"><input type="radio" name="start" value="3bulan"><span class="dot-outer"></span>Dalam 3 bulan</label>
+            <label class="radio-label"><input type="radio" name="start" value="survey"><span class="dot-outer"></span>Masih perlu diskusi</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. CATATAN -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">6</div>
+        <div>
+          <h2>Catatan Kebutuhan Khusus</h2>
+          <p>Opsional — bantu kami memahami bisnis Anda lebih dalam</p>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="field">
+          <label>Kebutuhan Khusus <span class="opt">opsional</span></label>
+          <textarea placeholder="Contoh: integrasi marketplace Shopee, laporan per cabang, manajemen multi gudang, proses produksi, dll." style="min-height:90px"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. PERSETUJUAN -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="section-num">7</div>
+        <div>
+          <h2>Persetujuan Registrasi</h2>
+          <p>Konfirmasi komitmen untuk memulai proses implementasi</p>
+        </div>
+      </div>
+      <div class="section-body">
+
+        <div class="agreement-box">
+          <p>Dengan mengisi dan menandatangani form ini, perusahaan kami menyatakan:</p>
+          <p>1. <strong>Minat dan komitmen</strong> untuk menggunakan sistem SYNERA sesuai paket yang dipilih.</p>
+          <p>2. <strong>Bersedia melanjutkan</strong> proses penyusunan penawaran (quotation), perjanjian (agreement), dan invoice.</p>
+          <p>3. Data yang diisi adalah <strong>benar dan dapat dipertanggungjawabkan</strong>.</p>
+          <p style="margin:0">4. Informasi ini akan digunakan untuk keperluan <strong>implementasi dan administrasi SYNERA</strong> semata.</p>
+        </div>
+
+        <div class="sig-row">
+          <div class="field">
+            <label>Nama Penandatangan <span class="req">*</span></label>
+            <input type="text" id="signerName" placeholder="Nama lengkap" required>
+          </div>
+          <div class="field">
+            <label>Jabatan <span class="req">*</span></label>
+            <input type="text" placeholder="Jabatan resmi">
+          </div>
+          <div class="field">
+            <label>Tanggal</label>
+            <input type="text" id="sigDate" readonly style="cursor:default;color:var(--text3)">
+          </div>
+          <div class="field">
+            <label>Kota / Tempat</label>
+            <input type="text" placeholder="Kota penandatanganan">
+          </div>
+        </div>
+
+        <!-- SIGNATURE PAD -->
+        <div class="sig-pad-wrap">
+          <label>Tanda Tangan Digital</label>
+          <div class="sig-pad" id="sigPad">
+            <span id="sigHint">Klik &amp; geser di sini untuk tanda tangan</span>
+            <canvas id="sigCanvas"></canvas>
+          </div>
+          <button type="button" class="sig-clear" onclick="clearSig()">Hapus tanda tangan</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <div class="submit-section">
+      <button type="submit" class="submit-btn no-print">
+        ✓ &nbsp;Kirim Registrasi
+      </button>
+      <p class="submit-note no-print">Data Anda aman dan hanya digunakan untuk keperluan implementasi SYNERA.</p>
+    </div>
+
+  </form>
+  </div><!-- /form-content -->
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✓</div>
+    <h2>Registrasi Berhasil Dikirim!</h2>
+    <p>Terima kasih. Tim SYNERA akan menghubungi Anda dalam 1×24 jam untuk melanjutkan proses penawaran dan implementasi.</p>
+    <br>
+    <a href="https://wa.me/62" class="btn-sm cyan" style="margin-top:.5rem;font-size:.85rem;padding:.65rem 1.25rem">💬 Chat WhatsApp Tim Kami</a>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// Date & reg number
+const now = new Date()
+const opts = {day:'numeric',month:'long',year:'numeric'}
+document.getElementById('todayDate').textContent = now.toLocaleDateString('id-ID', opts)
+document.getElementById('sigDate').value = now.toLocaleDateString('id-ID', opts)
+document.getElementById('regNum').textContent = 'SYN-' + now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + String(Math.floor(Math.random()*9000)+1000)
+
+// Signature canvas
+const canvas = document.getElementById('sigCanvas')
+const ctx = canvas.getContext('2d')
+const hint = document.getElementById('sigHint')
+let drawing = false, hasSig = false
+
+function resizeCanvas(){
+  const pad = document.getElementById('sigPad')
+  canvas.width = pad.offsetWidth
+  canvas.height = pad.offsetHeight
+}
+resizeCanvas()
+window.addEventListener('resize', resizeCanvas)
+
+function getPos(e){
+  const r = canvas.getBoundingClientRect()
+  if(e.touches){return{x:e.touches[0].clientX-r.left,y:e.touches[0].clientY-r.top}}
+  return{x:e.clientX-r.left,y:e.clientY-r.top}
+}
+canvas.addEventListener('mousedown', e=>{drawing=true;hint.style.display='none';hasSig=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)})
+canvas.addEventListener('mousemove', e=>{if(!drawing)return;ctx.strokeStyle='#06b6d4';ctx.lineWidth=2;ctx.lineCap='round';const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke()})
+canvas.addEventListener('mouseup', ()=>drawing=false)
+canvas.addEventListener('mouseleave', ()=>drawing=false)
+canvas.addEventListener('touchstart', e=>{e.preventDefault();drawing=true;hint.style.display='none';hasSig=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)},{passive:false})
+canvas.addEventListener('touchmove', e=>{e.preventDefault();if(!drawing)return;ctx.strokeStyle='#06b6d4';ctx.lineWidth=2;ctx.lineCap='round';const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke()},{passive:false})
+canvas.addEventListener('touchend', ()=>drawing=false)
+
+function clearSig(){ctx.clearRect(0,0,canvas.width,canvas.height);hasSig=false;hint.style.display='flex'}
+function resetCheckboxes(){clearSig();hint.style.display='flex'}
+
+// Submit
+document.getElementById('regForm').addEventListener('submit', e=>{
+  e.preventDefault()
+  document.getElementById('formContent').classList.add('hide')
+  document.getElementById('successScreen').classList.add('show')
+  window.scrollTo({top:0,behavior:'smooth'})
+})
+</script>
+</body>
+</html>
