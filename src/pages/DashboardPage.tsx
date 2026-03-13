@@ -22,10 +22,10 @@ const COLORS = {
 }
 
 const REGISTRATIONS = [
-  { id: 'r001', reg_no: 'SYN-2026-1008', company: 'Toko Sembako Pak Joko', pic: 'Joko Susanto', pic_title: 'Owner', wa: '08888999000', email: 'joko@sembakojoko.id', industry: 'FMCG', city: 'Solo', package: 'SYNERA Basic', reg_status: 'open', reg_date: '11 Mar 2026' },
-  { id: 'r002', reg_no: 'SYN-2026-1009', company: 'PT Mitra Teknologi Bangsa', pic: 'Fajar Setiawan', pic_title: 'CTO', wa: '08999000111', email: 'fajar@mitrateknologi.id', industry: 'IT', city: 'Jakarta', package: 'SYNERA Growth', reg_status: 'open', reg_date: '12 Mar 2026' },
-  { id: 'r004', reg_no: 'SYN-2026-1011', company: 'CV Cahaya Timur', pic: 'Benny Kurniawan', pic_title: 'Direktur', wa: '08211223344', email: 'benny@cahayatimur.id', industry: 'Distribusi', city: 'Surabaya', package: 'SYNERA Growth', reg_status: 'review', reg_date: '9 Mar 2026' },
-  { id: 'r005', reg_no: 'SYN-2026-1007', company: 'PT Karya Nusantara Tbk', pic: 'Nina Susanti', pic_title: 'CFO', wa: '08777888999', email: 'nina@karyanusantara.id', industry: 'Manufaktur', city: 'Surabaya', package: 'SYNERA Pro', reg_status: 'release', reg_date: '8 Mar 2026' },
+  { id: 'r001', reg_no: 'SYN-2026-1008', company: 'Toko Sembako Pak Joko', pic: 'Joko Susanto', pic_title: 'Owner', wa: '08888999000', email: 'joko@sembakojoko.id', industry: 'FMCG', city: 'Solo', package: 'SYNERA Basic', reg_status: 'open', approval_status: 'open', reg_date: '11 Mar 2026' },
+  { id: 'r002', reg_no: 'SYN-2026-1009', company: 'PT Mitra Teknologi Bangsa', pic: 'Fajar Setiawan', pic_title: 'CTO', wa: '08999000111', email: 'fajar@mitrateknologi.id', industry: 'IT', city: 'Jakarta', package: 'SYNERA Growth', reg_status: 'open', approval_status: 'open', reg_date: '12 Mar 2026' },
+  { id: 'r004', reg_no: 'SYN-2026-1011', company: 'CV Cahaya Timur', pic: 'Benny Kurniawan', pic_title: 'Direktur', wa: '08211223344', email: 'benny@cahayatimur.id', industry: 'Distribusi', city: 'Surabaya', package: 'SYNERA Growth', reg_status: 'review', approval_status: 'release', reg_date: '9 Mar 2026' },
+  { id: 'r005', reg_no: 'SYN-2026-1007', company: 'PT Karya Nusantara Tbk', pic: 'Nina Susanti', pic_title: 'CFO', wa: '08777888999', email: 'nina@karyanusantara.id', industry: 'Manufaktur', city: 'Surabaya', package: 'SYNERA Pro', reg_status: 'release', approval_status: 'release', reg_date: '8 Mar 2026' },
 ]
 
 const CLIENTS = [
@@ -41,7 +41,12 @@ export default function DashboardPage() {
   const [currentRegTab, setCurrentRegTab] = useState('open')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<any>(null)
+  const [registrations, setRegistrations] = useState(REGISTRATIONS)
   const userRole = localStorage.getItem('userRole') || 'admin'
+
+  const updateApprovalStatus = (regId: string, newStatus: 'open' | 'release') => {
+    setRegistrations(registrations.map(r => r.id === regId ? { ...r, approval_status: newStatus } : r))
+  }
 
   useEffect(() => {
     const allowedRoles = ['admin', 'manager', 'supervisor']
@@ -144,7 +149,7 @@ export default function DashboardPage() {
                 {['open', 'review', 'release', 'rejected'].map(tab => (
                   <button key={tab} onClick={() => setCurrentRegTab(tab)} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.45rem 0.9rem', borderRadius: '9px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 700, border: `1.5px solid ${currentRegTab === tab ? COLORS.cyan : COLORS.border}`, background: currentRegTab === tab ? COLORS.cyanDim : COLORS.surface, color: currentRegTab === tab ? COLORS.cyan : COLORS.text3 }}>
                     <span>{tab === 'open' ? '📥' : tab === 'review' ? '🔍' : tab === 'release' ? '✅' : '❌'} {tab.charAt(0).toUpperCase() + tab.slice(1)}</span>
-                    <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '0.08rem 0.38rem', borderRadius: '100px', background: 'rgba(255,255,255,.08)' }}>{REGISTRATIONS.filter(r => r.reg_status === tab).length}</span>
+                    <span style={{ fontSize: '0.65rem', fontWeight: 800, padding: '0.08rem 0.38rem', borderRadius: '100px', background: 'rgba(255,255,255,.08)' }}>{registrations.filter(r => r.reg_status === tab).length}</span>
                   </button>
                 ))}
               </div>
@@ -159,22 +164,38 @@ export default function DashboardPage() {
                         <th style={{ fontSize: '0.68rem', fontWeight: 700, color: COLORS.text3, padding: '0.6rem 1rem', textAlign: 'left', textTransform: 'uppercase' }}>PIC</th>
                         <th style={{ fontSize: '0.68rem', fontWeight: 700, color: COLORS.text3, padding: '0.6rem 1rem', textAlign: 'left', textTransform: 'uppercase' }}>Paket</th>
                         <th style={{ fontSize: '0.68rem', fontWeight: 700, color: COLORS.text3, padding: '0.6rem 1rem', textAlign: 'left', textTransform: 'uppercase' }}>Kota</th>
+                        <th style={{ fontSize: '0.68rem', fontWeight: 700, color: COLORS.text3, padding: '0.6rem 1rem', textAlign: 'left', textTransform: 'uppercase' }}>Status</th>
+                        <th style={{ fontSize: '0.68rem', fontWeight: 700, color: COLORS.text3, padding: '0.6rem 1rem', textAlign: 'left', textTransform: 'uppercase' }}>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {REGISTRATIONS.filter(r => r.reg_status === currentRegTab).map((r, i) => (
-                        <tr key={i} style={{ borderBottom: `1px solid rgba(255,255,255,.03)` }}>
+                      {registrations.filter(r => r.reg_status === currentRegTab).map((r, i) => (
+                        <tr key={i} onClick={() => navigate('/agreement', { state: { registration: r } })} style={{ borderBottom: `1px solid rgba(255,255,255,.03)`, cursor: 'pointer', transition: 'background-color 0.17s', backgroundColor: 'transparent' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = COLORS.surface2} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                           <td style={{ padding: '0.7rem 1rem', fontSize: '0.82rem', color: COLORS.text3, fontFamily: 'monospace' }}>{r.reg_no}</td>
                           <td style={{ padding: '0.7rem 1rem', fontSize: '0.82rem', fontWeight: 600 }}>{r.company}</td>
                           <td style={{ padding: '0.7rem 1rem', fontSize: '0.82rem' }}>{r.pic}</td>
                           <td style={{ padding: '0.7rem 1rem', fontSize: '0.82rem', color: COLORS.cyan }}>{r.package}</td>
                           <td style={{ padding: '0.7rem 1rem', fontSize: '0.82rem', color: COLORS.text3 }}>{r.city}</td>
+                          <td style={{ padding: '0.7rem 1rem', fontSize: '0.82rem' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: r.approval_status === 'release' ? COLORS.greenDim : 'rgba(251, 191, 36, 0.08)', border: `1px solid ${r.approval_status === 'release' ? COLORS.green + '4d' : 'rgba(251, 191, 36, 0.3)'}`, color: r.approval_status === 'release' ? COLORS.green : COLORS.yellow, padding: '0.3rem 0.65rem', borderRadius: '6px', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                              <span>{r.approval_status === 'release' ? '✓' : '◯'}</span>
+                              {r.approval_status === 'release' ? 'Release' : 'Open'}
+                            </div>
+                          </td>
+                          <td style={{ padding: '0.7rem 1rem' }} onClick={(e) => e.stopPropagation()}>
+                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                              {r.approval_status === 'open' && (
+                                <button onClick={() => updateApprovalStatus(r.id, 'release')} style={{ background: COLORS.green, border: 'none', borderRadius: '6px', padding: '0.3rem 0.65rem', fontSize: '0.72rem', fontWeight: 700, color: '#000', cursor: 'pointer', transition: 'opacity 0.17s' }} onMouseEnter={(e) => e.currentTarget.style.opacity = '0.8'} onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}>✓ Approve</button>
+                              )}
+                              <button onClick={() => navigate('/agreement', { state: { registration: r } })} style={{ background: COLORS.surface2, border: `1px solid ${COLORS.border2}`, borderRadius: '6px', padding: '0.3rem 0.65rem', fontSize: '0.72rem', fontWeight: 600, color: COLORS.text2, cursor: 'pointer' }}>Detail</button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <div style={{ fontSize: '0.75rem', color: COLORS.text3, padding: '0.9rem 1.15rem', borderTop: `1px solid ${COLORS.border}` }}>{REGISTRATIONS.filter(r => r.reg_status === currentRegTab).length} pendaftaran</div>
+                <div style={{ fontSize: '0.75rem', color: COLORS.text3, padding: '0.9rem 1.15rem', borderTop: `1px solid ${COLORS.border}` }}>{registrations.filter(r => r.reg_status === currentRegTab).length} pendaftaran</div>
               </div>
             </>
           )}

@@ -1,3 +1,4 @@
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useRegistrationStore } from '@/store/registrationStore'
 
 const COLORS = {
@@ -36,18 +37,52 @@ const packageDetails: any = {
 }
 
 export default function AgreementPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const { data } = useRegistrationStore()
   
-  const pkgInfo = packageDetails[(data.package || 'basic') as keyof typeof packageDetails]
-  const modules = data.modules && data.modules.length > 0 ? data.modules : ['Sesuai kebutuhan klien']
+  // Use location state data from dashboard if available, otherwise use store data
+  const registrationData = location.state?.registration || data || {}
   
-  // Calculate payment
+  // Set default values if registrationData is empty
+  const normalizePackage = (pkg: string) => {
+    if (!pkg) return 'basic'
+    const pkgLower = pkg.toLowerCase()
+    if (pkgLower.includes('growth')) return 'growth'
+    if (pkgLower.includes('pro')) return 'pro'
+    return 'basic'
+  }
+
+  const safeData = {
+    reg_no: registrationData.reg_no || registrationData.regNo || 'SYN-' + new Date().getFullYear() + '-0000',
+    package: normalizePackage(registrationData.package),
+    company: registrationData.company || '—',
+    industry: registrationData.industry || '—',
+    city: registrationData.city || '—',
+    address: registrationData.address || '—',
+    pic: registrationData.pic || registrationData.pic_name || '—',
+    pic_title: registrationData.pic_title || '—',
+    date: registrationData.date || new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'}),
+    start: registrationData.start || '—',
+    notes: registrationData.notes || '',
+    modules: registrationData.modules || [],
+    signature: registrationData.signature || '',
+    signer_name: registrationData.signer_name || registrationData.pic_name || '—',
+    signer_title: registrationData.signer_title || registrationData.pic_title || '—',
+  }
+  
+  const pkgInfo = packageDetails[safeData.package as keyof typeof packageDetails] || packageDetails.basic
+  const modules = safeData.modules && safeData.modules.length > 0 ? safeData.modules : ['Sesuai kebutuhan klien']
+  
+  const isFromDashboard = !!location.state?.registration
+  
+  // Calculate payment with safe package
   const priceMap: Record<string, number> = {
     'basic': 27000000,
     'growth': 36000000,
     'pro': 48000000
   }
-  const packageKey = (data.package as string) || 'basic'
+  const packageKey = safeData.package as string
   const totalPrice = priceMap[packageKey] || 0
   const dpAmount = Math.round(totalPrice / 2)
   const pelunasanAmount = totalPrice - dpAmount
@@ -66,11 +101,16 @@ export default function AgreementPage() {
           <div style={{ backgroundColor: COLORS.greenDim, borderColor: COLORS.green + '4d', color: COLORS.green }} className="text-xs font-bold px-3 py-1 rounded-full border">Agreement Siap</div>
         </div>
         <div className="flex gap-3">
+          {isFromDashboard && (
+            <button onClick={() => navigate('/dashboard')} style={{ backgroundColor: COLORS.surface2, borderColor: COLORS.border, color: COLORS.text2 }} className="border text-xs font-semibold px-4 py-2 rounded-lg transition hover:opacity-75">
+              ← Kembali
+            </button>
+          )}
           <button onClick={() => window.print()} style={{ backgroundColor: COLORS.surface2, borderColor: COLORS.border, color: COLORS.text2 }} className="border text-xs font-semibold px-4 py-2 rounded-lg transition hover:opacity-75">
             🖨 Print / PDF
           </button>
-          <button onClick={() => window.close()} style={{ backgroundColor: COLORS.cyan, color: COLORS.bg }} className="text-xs font-bold px-4 py-2 rounded-lg transition hover:opacity-90">
-            ✓ Selesai
+          <button onClick={() => isFromDashboard ? navigate('/dashboard') : window.close()} style={{ backgroundColor: COLORS.cyan, color: COLORS.bg }} className="text-xs font-bold px-4 py-2 rounded-lg transition hover:opacity-90">
+            {isFromDashboard ? '✓ Tutup' : '✓ Selesai'}
           </button>
         </div>
       </div>
@@ -92,8 +132,8 @@ export default function AgreementPage() {
               </div>
               <div className="text-right">
                 <div className="text-xs font-bold tracking-widest uppercase mb-1" style={{ color: COLORS.text3 }}>Nomor Dokumen</div>
-                <div className="text-lg font-black" style={{ color: COLORS.cyan }}>{data.regNo || 'SYN-' + new Date().getFullYear() + '-0000'}</div>
-                <div className="text-xs mt-1" style={{ color: COLORS.text3 }}>{data.date || new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'})}</div>
+                <div className="text-lg font-black" style={{ color: COLORS.cyan }}>{safeData.reg_no}</div>
+                <div className="text-xs mt-1" style={{ color: COLORS.text3 }}>{safeData.date}</div>
               </div>
             </div>
             
@@ -127,12 +167,12 @@ export default function AgreementPage() {
               {/* Party 2 */}
               <div style={{ backgroundColor: COLORS.bg2, borderColor: COLORS.border }} className="border rounded-2xl p-5">
                 <div style={{ backgroundColor: 'rgba(168,85,247,.1)', borderColor: 'rgba(168,85,247,.3)', color: '#a855f7' }} className="text-xs font-bold px-3 py-1 rounded-lg inline-block mb-4 border">Pihak Kedua — Klien</div>
-                <h3 className="font-black mb-4" style={{ color: COLORS.text }}>{data.company || '—'}</h3>
+                <h3 className="font-black mb-4" style={{ color: COLORS.text }}>{safeData.company}</h3>
                 <div className="space-y-2 text-sm">
-                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Bidang</span><span style={{ color: COLORS.text2 }}>{data.industry || '—'}</span></div>
-                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Alamat</span><span style={{ color: COLORS.text2 }}>{data.address ? data.address + ', ' + data.city : data.city || '—'}</span></div>
-                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Diwakili</span><span style={{ color: COLORS.text2 }}>{data.pic_name || '—'}</span></div>
-                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Jabatan</span><span style={{ color: COLORS.text2 }}>{data.pic_title || '—'}</span></div>
+                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Bidang</span><span style={{ color: COLORS.text2 }}>{safeData.industry}</span></div>
+                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Alamat</span><span style={{ color: COLORS.text2 }}>{safeData.address !== '—' ? safeData.address + ', ' + safeData.city : safeData.city}</span></div>
+                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Diwakili</span><span style={{ color: COLORS.text2 }}>{safeData.pic}</span></div>
+                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Jabatan</span><span style={{ color: COLORS.text2 }}>{safeData.pic_title}</span></div>
                 </div>
                 <div style={{ borderColor: COLORS.border, color: COLORS.text3 }} className="border-t mt-4 pt-3 text-xs italic">
                   Selanjutnya disebut <span style={{ color: '#a855f7' }} className="font-semibold">Pihak Kedua</span>
@@ -209,7 +249,7 @@ export default function AgreementPage() {
               <p>Estimasi waktu implementasi adalah <strong style={{ color: COLORS.text }}>2 sampai 3 minggu</strong> sejak pembayaran Down Payment diterima dan data awal dari Pihak Kedua telah diberikan.</p>
               <div style={{ backgroundColor: COLORS.cyanDim, borderColor: COLORS.cyan + '4d' }} className="border rounded-lg p-4">
                 <div style={{ color: COLORS.cyan }} className="text-xs font-bold uppercase tracking-widest mb-2">Estimasi Mulai</div>
-                <div className="font-bold" style={{ color: COLORS.text }}>{data.start || '—'}</div>
+                <div className="font-bold" style={{ color: COLORS.text }}>{safeData.start}</div>
               </div>
             </div>
           </div>
@@ -227,8 +267,8 @@ export default function AgreementPage() {
               </div>
               <p>Biaya tersebut sudah termasuk: penggunaan sistem ERP, implementasi standar, training pengguna, dan support sistem sesuai paket.</p>
               <p>Biaya <strong style={{ color: COLORS.text }}>tidak termasuk</strong>: custom development, integrasi tambahan di luar paket, dan layanan konsultasi di luar cakupan paket.</p>
-              {data.notes && data.notes !== '-' && (
-                <p><strong style={{ color: COLORS.text }}>Catatan kebutuhan khusus:</strong> {data.notes}</p>
+              {safeData.notes && safeData.notes !== '-' && (
+                <p><strong style={{ color: COLORS.text }}>Catatan kebutuhan khusus:</strong> {safeData.notes}</p>
               )}
             </div>
           </div>
@@ -317,23 +357,23 @@ export default function AgreementPage() {
               </div>
               <div className="font-semibold" style={{ color: COLORS.text }}>[Nama Direktur]</div>
               <div className="text-xs" style={{ color: COLORS.text3 }}>Direktur Utama</div>
-              <div className="text-xs mt-2" style={{ color: COLORS.text3 }}>{data.date || '—'}</div>
+              <div className="text-xs mt-2" style={{ color: COLORS.text3 }}>{safeData.date}</div>
             </div>
 
             {/* Party 2 Sig */}
             <div className="text-center">
               <div style={{ color: '#a855f7' }} className="text-xs font-bold uppercase tracking-widest mb-3">Pihak Kedua</div>
-              <div className="font-semibold mb-6" style={{ color: COLORS.text }}>{data.company || '—'}</div>
+              <div className="font-semibold mb-6" style={{ color: COLORS.text }}>{safeData.company}</div>
               <div style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg2 }} className="border-2 border-dashed rounded-lg h-24 mb-4 flex items-center justify-center overflow-hidden">
-                {data.signature && data.signature !== 'data:,' ? (
-                  <img src={data.signature} alt="signature" className="max-w-full max-h-full object-contain" />
+                {safeData.signature && safeData.signature !== 'data:,' ? (
+                  <img src={safeData.signature} alt="signature" className="max-w-full max-h-full object-contain" />
                 ) : (
                   <span style={{ color: COLORS.text3 }} className="text-sm">Dari registrasi</span>
                 )}
               </div>
-              <div className="font-semibold" style={{ color: COLORS.text }}>{data.signer_name || data.pic_name || '—'}</div>
-              <div className="text-xs mt-1" style={{ color: COLORS.text3 }}>{data.signer_title || data.pic_title || '—'}</div>
-              <div className="text-xs mt-2" style={{ color: COLORS.text3 }}>{data.date || '—'}</div>
+              <div className="font-semibold" style={{ color: COLORS.text }}>{safeData.signer_name}</div>
+              <div className="text-xs mt-1" style={{ color: COLORS.text3 }}>{safeData.signer_title}</div>
+              <div className="text-xs mt-2" style={{ color: COLORS.text3 }}>{safeData.date}</div>
             </div>
           </div>
         </div>

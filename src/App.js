@@ -15,6 +15,6 @@ const ProtectedRoute = ({ children }) => {
     return _jsx(_Fragment, { children: children });
 };
 export default function App() {
-    return (_jsx(Router, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/login", element: _jsx(LoginPage, {}) }), _jsx(Route, { path: "/dashboard", element: _jsx(ProtectedRoute, { children: _jsx(DashboardPage, {}) }) }), _jsx(Route, { path: "*", element: _jsxs("div", { className: "min-h-screen bg-bg text-text", children: [_jsx(Navbar, {}), _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(IndexPage, {}) }), _jsx(Route, { path: "/registrasi", element: _jsx(RegistrasiPage, {}) }), _jsx(Route, { path: "/agreement", element: _jsx(AgreementPage, {}) })] })] }) })] }) }));
+    return (_jsx(Router, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/login", element: _jsx(LoginPage, {}) }), _jsx(Route, { path: "/dashboard", element: _jsx(ProtectedRoute, { children: _jsx(DashboardPage, {}) }) }), _jsx(Route, { path: "/agreement", element: _jsx(AgreementPage, {}) }), _jsx(Route, { path: "*", element: _jsxs("div", { className: "min-h-screen bg-bg text-text", children: [_jsx(Navbar, {}), _jsxs(Routes, { children: [_jsx(Route, { path: "/", element: _jsx(IndexPage, {}) }), _jsx(Route, { path: "/registrasi", element: _jsx(RegistrasiPage, {}) })] })] }) })] }) }));
 }
 //# sourceMappingURL=App.js.map

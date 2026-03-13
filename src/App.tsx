@@ -23,13 +23,13 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/agreement" element={<AgreementPage />} />
         <Route path="*" element={
           <div className="min-h-screen bg-bg text-text">
             <Navbar />
             <Routes>
               <Route path="/" element={<IndexPage />} />
               <Route path="/registrasi" element={<RegistrasiPage />} />
-              <Route path="/agreement" element={<AgreementPage />} />
             </Routes>
           </div>
         } />
