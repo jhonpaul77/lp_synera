@@ -39,7 +39,7 @@ export default function Navbar() {
         {(location.pathname === '/' || location.pathname === '') && (
           <>
             <button
-              onClick={() => alert('Login akan segera tersedia')}
+              onClick={() => navigate('/login')}
               className="px-4 py-2 rounded-lg border border-border text-text-2 text-xs font-semibold hover:border-border-2 hover:text-text transition-colors"
             >
               Login
