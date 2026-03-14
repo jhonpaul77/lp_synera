@@ -39,6 +39,7 @@ export interface RegistrationData {
   // Metadata
   date?: string
   regNo?: string
+  registrationId?: string
 }
 
 interface Store {

@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
+import { authService } from '../api/authService'
 
 const COLORS = {
   bg: '#09090b',
@@ -32,34 +33,60 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log(`📝 [LOGIN PAGE] handleSubmit called`)
     setError('')
+    setLoading(true)
     
     if (!email || !password) {
+      console.log(`📝 [LOGIN PAGE] Email or password empty`)
       setError('Email dan password harus diisi')
-      return
-    }
-
-    setLoading(true)
-    // Simulate API call
-    await new Promise(r => setTimeout(r, 1400))
-
-    // Demo: accept any non-empty input, reject specific test
-    if (email === 'wrong@test.com' || password === 'wrongpass') {
       setLoading(false)
-      setError('Email atau password salah. Silakan coba lagi.')
       return
     }
 
-    // Success
-    setLoading(false)
-    // Set role based on email domain
-    const role = email.includes('@synera.id') ? 'admin' : email.includes('@manager') ? 'manager' : 'admin'
-    localStorage.setItem('userRole', role)
-    localStorage.setItem('userName', email)
-    setSuccess(true)
-    setTimeout(() => {
-      navigate('/dashboard')
-    }, 2000)
+    console.log(`📝 [LOGIN PAGE] Calling authService.login() with email: ${email}`)
+    try {
+      const response = await authService.login(email, password)
+      
+      console.log(`📝 [LOGIN PAGE] Login response received:`, response)
+      if (response.success && response.data?.access_token) {
+        console.log(`📝 [LOGIN PAGE] Response successful, saving tokens`)
+        // Save tokens
+        authService.setTokens(response.data.access_token, response.data.refresh_token)
+        
+        // Save user info
+        localStorage.setItem('userEmail', email)
+        localStorage.setItem('userRole', 'admin') // Set default role (TODO: extract from JWT)
+        
+        setSuccess(true)
+        setLoading(false)
+        
+        console.log(`📝 [LOGIN PAGE] Redirecting to dashboard in 1s`)
+        setTimeout(() => {
+          navigate({ to: '/dashboard' })
+        }, 1000)
+      } else {
+        console.log(`📝 [LOGIN PAGE] Response not successful`)
+        setError('Login gagal: Invalid response dari server')
+        setLoading(false)
+      }
+    } catch (error: any) {
+      console.error('📝 [LOGIN PAGE] Login error:', error)
+      
+      // IMPORTANT: Clear any old tokens on failed login
+      console.log(`📝 [LOGIN PAGE] Clearing tokens due to failed login`)
+      authService.logout()
+      
+      // Handle error response
+      const errorMessage = 
+        error.message || 
+        error.data?.message || 
+        'Email atau password salah. Silakan coba lagi.'
+      
+      console.log(`📝 [LOGIN PAGE] Displaying error message:`, errorMessage)
+      setError(errorMessage)
+      setLoading(false)
+    }
   }
 
   const handleSSOProvider = (provider: string) => {
@@ -69,7 +96,7 @@ export default function LoginPage() {
     }
     setSuccess(true)
     setTimeout(() => {
-      navigate('/registrasi')
+      navigate({ to: '/registrasi' })
     }, 3000)
   }
 
@@ -109,11 +136,15 @@ export default function LoginPage() {
           from { width: 0; }
           to { width: 100%; }
         }
+        @media (max-width: 768px) {
+          #leftPanel { display: none !important; }
+          #rightPanel { width: 100% !important; padding: 1.5rem 1rem !important; }
+        }
       `}</style>
 
       <div style={{ backgroundColor: COLORS.bg, display: 'flex', height: '100vh', overflow: 'hidden', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         {/* LEFT PANEL */}
-        <div style={{ flex: 1, backgroundColor: COLORS.bg2, borderRight: `1px solid ${COLORS.border}`, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '2.5rem' }}>
+        <div id="leftPanel" style={{ flex: 1, backgroundColor: COLORS.bg2, borderRight: `1px solid ${COLORS.border}`, position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '2.5rem' }}>
           {/* Grid Background */}
           <div style={{ position: 'absolute', inset: 0, backgroundImage: `linear-gradient(rgba(6,182,212,.06) 1px,transparent 1px), linear-gradient(90deg,rgba(6,182,212,.06) 1px,transparent 1px)`, backgroundSize: '48px 48px', animation: 'gridShift 20s linear infinite' }}></div>
           <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(ellipse 80% 80% at 30% 40%,transparent 20%,${COLORS.bg2} 80%)` }}></div>
@@ -125,7 +156,7 @@ export default function LoginPage() {
           {/* Left Content */}
           <div style={{ position: 'relative', zIndex: 1 }}>
             {/* Logo */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: 'auto', cursor: 'pointer' }} onClick={() => navigate({ to: '/' })}>
               <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'linear-gradient(135deg, #06b6d4, #0891b2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 900, color: '#fff', boxShadow: '0 0 20px rgba(6,182,212,.35)' }}>
                 SY
               </div>
@@ -187,7 +218,7 @@ export default function LoginPage() {
         </div>
 
         {/* RIGHT PANEL */}
-        <div style={{ width: '440px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '3rem 2.75rem', backgroundColor: COLORS.bg, overflowY: 'auto', position: 'relative' }}>
+        <div id="rightPanel" style={{ width: '440px', flexShrink: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '3rem 2.75rem', backgroundColor: COLORS.bg, overflowY: 'auto', position: 'relative' }}>
           {/* Form Header */}
           <div style={{ marginBottom: '2rem', animation: 'slideUp .45s .1s both' }}>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#fff', letterSpacing: '-0.025em', marginBottom: '0.35rem' }}>

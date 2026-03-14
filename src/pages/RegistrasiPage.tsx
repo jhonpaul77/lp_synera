@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { useRegistrationStore } from '@/store/registrationStore'
+import { registrationService } from '@/api/registrationService'
 
 const COLORS = {
   bg: '#09090b',
@@ -19,6 +20,34 @@ const COLORS = {
   greenDim: 'rgba(34,197,94,.1)',
 }
 
+const INDUSTRIES = [
+  { value: 'retail', label: 'Retail' },
+  { value: 'distribusi', label: 'Distribusi' },
+  { value: 'manufaktur', label: 'Manufaktur' },
+  { value: 'jasa', label: 'Jasa' },
+  { value: 'pertanian', label: 'Pertanian' },
+  { value: 'pariwisata', label: 'Pariwisata' },
+  { value: 'pendidikan', label: 'Pendidikan' },
+  { value: 'kesehatan', label: 'Kesehatan' },
+  { value: 'keuangan', label: 'Keuangan' },
+  { value: 'teknologi', label: 'Teknologi' },
+  { value: 'lainnya', label: 'Lainnya' }
+]
+
+const JOB_TITLES = [
+  { value: 'direktur', label: 'Direktur' },
+  { value: 'direktur_utama', label: 'Direktur Utama' },
+  { value: 'manager_general', label: 'General Manager' },
+  { value: 'manager_operasional', label: 'Manager Operasional' },
+  { value: 'manager_keuangan', label: 'Manager Keuangan' },
+  { value: 'owner', label: 'Owner' },
+  { value: 'pemilik', label: 'Pemilik' },
+  { value: 'kepala_operasional', label: 'Kepala Operasional' },
+  { value: 'kepala_keuangan', label: 'Kepala Keuangan' },
+  { value: 'supervisor', label: 'Supervisor' },
+  { value: 'staff', label: 'Staff' }
+]
+
 export default function RegistrasiPage() {
   const navigate = useNavigate()
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -26,6 +55,8 @@ export default function RegistrasiPage() {
   const [hasSig, setHasSig] = useState(false)
   const { updateData } = useRegistrationStore()
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   // Form state
   const [formData, setFormData] = useState({
@@ -106,32 +137,72 @@ export default function RegistrasiPage() {
     setHasSig(false)
   }
 
-  const handleSubmit = (e: any) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault()
     
     if (!formData.company || !formData.industry || !formData.city || !formData.pic_name || !formData.pic_title || !formData.phone || !formData.email) {
-      alert('Mohon lengkapi semua field yang wajib diisi')
+      setError('Mohon lengkapi semua field yang wajib diisi')
       return
     }
 
     if (!hasSig) {
-      alert('Mohon tandatangani form')
+      setError('Mohon tandatangani form')
       return
     }
 
-    const sigData = canvasRef.current?.toDataURL() || ''
-    const dataToStore = {
-      ...formData,
-      signature: sigData,
-      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
-      regNo: `SYN-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}${String(Math.floor(Math.random() * 9000) + 1000)}`
-    }
+    setLoading(true)
+    setError('')
+    
+    try {
+      const sigData = canvasRef.current?.toDataURL() || ''
+      const regData = {
+        company: formData.company,
+        brand: formData.brand,
+        industry: formData.industry,
+        city: formData.city,
+        address: formData.address,
+        website: formData.website,
+        pic_name: formData.pic_name,
+        pic_title: formData.pic_title,
+        phone: formData.phone,
+        email: formData.email,
+        employees: formData.employees,
+        users: formData.users,
+        current_sys: formData.current_sys,
+        modules: formData.modules,
+        package: formData.package,
+        start: formData.start,
+        notes: formData.notes,
+        signer_name: formData.signer_name,
+        signer_title: formData.signer_title,
+        signer_city: formData.signer_city,
+        signature: sigData
+      }
 
-    updateData(dataToStore)
-    setSubmitted(true)
-    setTimeout(() => {
-      navigate('/agreement')
-    }, 2000)
+      const response = await registrationService.createRegistration(regData)
+      
+      if (response.success) {
+        // Store data for reference
+        const dataToStore = {
+          ...formData,
+          signature: sigData,
+          date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+          regNo: response.data.reg_no,
+          registrationId: response.data.id
+        }
+        updateData(dataToStore)
+        setSubmitted(true)
+        
+        // Redirect to agreement with registration ID
+        setTimeout(() => {
+          navigate({ to: `/agreement?regId=${response.data.id}` })
+        }, 2000)
+      }
+    } catch (err: any) {
+      console.error('Submission error:', err)
+      setError(err.message || 'Gagal mengirim registrasi. Silakan coba lagi.')
+      setLoading(false)
+    }
   }
 
   if (submitted) {
@@ -153,17 +224,28 @@ export default function RegistrasiPage() {
     <div style={{ backgroundColor: COLORS.bg, color: COLORS.text }} className="min-h-screen pt-20 pb-20 px-6">
       <div className="max-w-2xl mx-auto">
         {/* Form Header */}
-        <div style={{ background: 'linear-gradient(135deg, rgba(6,182,212,.04) 0%, rgba(10,10,15,.5) 100%)', borderColor: 'rgba(6,182,212,.2)' }} className="border rounded-3xl p-8 mb-6 relative overflow-hidden">
-          <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full bg-gradient-radial from-cyan-500/20 to-transparent pointer-events-none"></div>
+        <div style={{ background: 'linear-gradient(135deg, #0d1a1a 0%, #0a0a0f 100%)', borderColor: 'rgba(6,182,212,.2)' }} className="border rounded-3xl p-8 mb-6 relative overflow-hidden">
+          <div className="absolute -top-20 -right-20 w-48 h-48 rounded-full" style={{ background: 'radial-gradient(circle, rgba(6,182,212,.2), transparent 70%)', pointerEvents: 'none' }}></div>
           
           <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <div style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)', color: '#fff' }} className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black">SY</div>
-              <span className="text-xl font-black" style={{ color: COLORS.text }}>SYNERA</span>
+            {/* Header Top: Logo + Badge */}
+            <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+              <div className="flex items-center gap-3">
+                <div style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)', color: '#fff' }} className="w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black">SY</div>
+                <span className="text-xl font-black" style={{ color: '#fff' }}>SYNERA</span>
+              </div>
+              <div style={{ backgroundColor: COLORS.cyanDim, borderColor: 'rgba(6,182,212,.25)', color: COLORS.cyan, letterSpacing: '0.1em', textTransform: 'uppercase' }} className="border rounded text-xs font-bold px-3 py-1.5">Formulir Registrasi</div>
             </div>
-            <h1 className="text-3xl font-black mb-2" style={{ color: COLORS.text }}>Form Registrasi Implementasi<br />Sistem Bisnis</h1>
-            <p className="text-sm mb-5" style={{ color: COLORS.text2 }}>Lengkapi form ini untuk memulai proses penawaran dan implementasi SYNERA. Pengisian membutuhkan sekitar 3–5 menit.</p>
-            <div className="flex gap-4 text-xs pt-4" style={{ color: COLORS.text3, borderTop: `1px solid ${COLORS.border}` }}>
+
+            {/* Title */}
+            <h1 className="text-3xl font-black mb-2" style={{ color: '#fff', letterSpacing: '-0.025em', lineHeight: '1.2' }}>Form Registrasi Implementasi<br />Sistem Bisnis</h1>
+            
+            {/* Description */}
+            <p className="text-sm mb-5" style={{ color: COLORS.text2, lineHeight: '1.6' }}>Lengkapi form ini untuk memulai proses penawaran dan implementasi SYNERA. Pengisian membutuhkan sekitar 3–5 menit.</p>
+            
+            {/* Meta Info */}
+            <div className="flex gap-6 text-xs pt-5 flex-wrap" style={{ color: COLORS.text3, borderTop: `1px solid rgba(255,255,255,.07)` }}>
+              <div>Nomer Reg <span style={{ color: COLORS.cyan }} className="font-semibold">{`SYN-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}${String(Math.floor(Math.random() * 9000) + 1000)}`}</span></div>
               <div>Tanggal <span style={{ color: COLORS.cyan }} className="font-semibold">{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span></div>
               <div>Produk <span style={{ color: COLORS.cyan }} className="font-semibold">SYNERA ERP</span></div>
             </div>
@@ -201,10 +283,13 @@ export default function RegistrasiPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label style={{ color: COLORS.text2 }} className="text-xs font-semibold block mb-2">Bidang Usaha <span style={{ color: COLORS.cyan }}>*</span></label>
-                  <input type="text" placeholder="Contoh: Retail, Distribusi, Manufaktur" required
+                  <select required
                     value={formData.industry} onChange={(e) => setFormData({...formData, industry: e.target.value})}
                     style={{ backgroundColor: COLORS.bg2, borderColor: COLORS.border2, color: COLORS.text }} 
-                    className="w-full rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:ring-2" />
+                    className="w-full rounded-lg px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2">
+                    <option value="">-- Pilih Bidang Usaha --</option>
+                    {INDUSTRIES.map(ind => <option key={ind.value} value={ind.label}>{ind.label}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label style={{ color: COLORS.text2 }} className="text-xs font-semibold block mb-2">Kota <span style={{ color: COLORS.cyan }}>*</span></label>
@@ -251,10 +336,13 @@ export default function RegistrasiPage() {
                 </div>
                 <div>
                   <label style={{ color: COLORS.text2 }} className="text-xs font-semibold block mb-2">Jabatan <span style={{ color: COLORS.cyan }}>*</span></label>
-                  <input type="text" placeholder="Contoh: Direktur, Manajer, Owner" required
+                  <select required
                     value={formData.pic_title} onChange={(e) => setFormData({...formData, pic_title: e.target.value})}
                     style={{ backgroundColor: COLORS.bg2, borderColor: COLORS.border2, color: COLORS.text }} 
-                    className="w-full rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:ring-2" />
+                    className="w-full rounded-lg px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-2">
+                    <option value="">-- Pilih Jabatan --</option>
+                    {JOB_TITLES.map(job => <option key={job.value} value={job.label}>{job.label}</option>)}
+                  </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -445,10 +533,11 @@ export default function RegistrasiPage() {
                 </div>
                 <div>
                   <label style={{ color: COLORS.text2 }} className="text-xs font-semibold block mb-2">Jabatan <span style={{ color: COLORS.cyan }}>*</span></label>
-                  <input type="text" placeholder="Jabatan resmi" required
-                    value={formData.signer_title} onChange={(e) => setFormData({...formData, signer_title: e.target.value})}
-                    style={{ backgroundColor: COLORS.bg2, borderColor: COLORS.border2, color: COLORS.text }} 
-                    className="w-full rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none focus:ring-2" />
+                  <input type="text" placeholder="Otomatis dari Jabatan PIC di atas" required disabled
+                    value={formData.signer_title || formData.pic_title} 
+                    style={{ backgroundColor: COLORS.bg2, borderColor: COLORS.border2, color: COLORS.text, opacity: 0.7 }} 
+                    className="w-full rounded-lg px-3 py-2 text-sm placeholder-gray-600 focus:outline-none" />
+                  <p style={{ color: COLORS.text3 }} className="text-xs mt-1">Jabatan akan otomatis diambil dari Jabatan PIC di atas</p>
                 </div>
               </div>
 
@@ -482,8 +571,13 @@ export default function RegistrasiPage() {
 
           {/* Submit */}
           <div className="flex flex-col items-center gap-4">
-            <button type="submit" style={{ backgroundColor: COLORS.cyan, color: COLORS.bg }} className="w-full max-w-sm font-bold py-3 rounded-xl transition transform hover:translate-y-[-2px] hover:shadow-[0_12px_32px_rgba(6,182,212,0.3)]">
-              ✓ Kirim Registrasi
+            {error && (
+              <div style={{ backgroundColor: 'rgba(248,113,113,.1)', borderColor: 'rgba(248,113,113,.3)', color: '#f87171' }} className="w-full border rounded-lg p-3 text-sm">
+                {error}
+              </div>
+            )}
+            <button type="submit" disabled={loading} style={{ backgroundColor: loading ? '#52525b' : COLORS.cyan, color: COLORS.bg, opacity: loading ? 0.6 : 1 }} className="w-full max-w-sm font-bold py-3 rounded-xl transition transform hover:translate-y-[-2px] hover:shadow-[0_12px_32px_rgba(6,182,212,0.3)] disabled:cursor-not-allowed">
+              {loading ? '⏳ Mengirim...' : '✓ Kirim Registrasi'}
             </button>
             <p className="text-xs text-center" style={{ color: COLORS.text3 }}>
               Data Anda aman dan hanya digunakan untuk keperluan implementasi SYNERA.

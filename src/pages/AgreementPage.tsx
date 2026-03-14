@@ -1,5 +1,7 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { useNavigate, useSearch } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
 import { useRegistrationStore } from '@/store/registrationStore'
+import { registrationService, Registration } from '../api/registrationService'
 
 const COLORS = {
   bg: '#09090b',
@@ -37,15 +39,14 @@ const packageDetails: any = {
 }
 
 export default function AgreementPage() {
-  const location = useLocation()
   const navigate = useNavigate()
   const { data } = useRegistrationStore()
   
-  // Use location state data from dashboard if available, otherwise use store data
-  const registrationData = location.state?.registration || data || {}
+  // Use store data
+  const registrationData = data || {}
   
   // Set default values if registrationData is empty
-  const normalizePackage = (pkg: string) => {
+  const normalizePackage = (pkg: string | undefined) => {
     if (!pkg) return 'basic'
     const pkgLower = pkg.toLowerCase()
     if (pkgLower.includes('growth')) return 'growth'
@@ -54,13 +55,13 @@ export default function AgreementPage() {
   }
 
   const safeData = {
-    reg_no: registrationData.reg_no || registrationData.regNo || 'SYN-' + new Date().getFullYear() + '-0000',
+    reg_no: registrationData.regNo || 'SYN-' + new Date().getFullYear() + '-0000',
     package: normalizePackage(registrationData.package),
     company: registrationData.company || '—',
     industry: registrationData.industry || '—',
     city: registrationData.city || '—',
     address: registrationData.address || '—',
-    pic: registrationData.pic || registrationData.pic_name || '—',
+    pic: registrationData.pic_name || '—',
     pic_title: registrationData.pic_title || '—',
     date: registrationData.date || new Date().toLocaleDateString('id-ID', {day:'numeric',month:'long',year:'numeric'}),
     start: registrationData.start || '—',
@@ -74,7 +75,7 @@ export default function AgreementPage() {
   const pkgInfo = packageDetails[safeData.package as keyof typeof packageDetails] || packageDetails.basic
   const modules = safeData.modules && safeData.modules.length > 0 ? safeData.modules : ['Sesuai kebutuhan klien']
   
-  const isFromDashboard = !!location.state?.registration
+  const isFromDashboard = !!registrationData.company
   
   // Calculate payment with safe package
   const priceMap: Record<string, number> = {
@@ -91,8 +92,11 @@ export default function AgreementPage() {
     return 'Rp ' + num.toLocaleString('id-ID')
   }
 
+  // Get registration ID from store data
+  const registrationId = registrationData.registrationId || ''
+
   return (
-    <div style={{ backgroundColor: COLORS.bg, color: COLORS.text }} className="min-h-screen pt-16">
+    <div style={{ backgroundColor: COLORS.bg, color: COLORS.text }} className="min-h-screen">
       {/* Action Bar */}
       <div style={{ backgroundColor: COLORS.surface2 + 'e6', borderColor: COLORS.border }} className="sticky top-0 z-50 backdrop-blur border-b px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-3">
@@ -102,15 +106,12 @@ export default function AgreementPage() {
         </div>
         <div className="flex gap-3">
           {isFromDashboard && (
-            <button onClick={() => navigate('/dashboard')} style={{ backgroundColor: COLORS.surface2, borderColor: COLORS.border, color: COLORS.text2 }} className="border text-xs font-semibold px-4 py-2 rounded-lg transition hover:opacity-75">
+            <button onClick={() => navigate({ to: '/dashboard' })} style={{ backgroundColor: COLORS.surface2, borderColor: COLORS.border, color: COLORS.text2 }} className="border text-xs font-semibold px-4 py-2 rounded-lg transition hover:opacity-75">
               ← Kembali
             </button>
           )}
           <button onClick={() => window.print()} style={{ backgroundColor: COLORS.surface2, borderColor: COLORS.border, color: COLORS.text2 }} className="border text-xs font-semibold px-4 py-2 rounded-lg transition hover:opacity-75">
             🖨 Print / PDF
-          </button>
-          <button onClick={() => isFromDashboard ? navigate('/dashboard') : window.close()} style={{ backgroundColor: COLORS.cyan, color: COLORS.bg }} className="text-xs font-bold px-4 py-2 rounded-lg transition hover:opacity-90">
-            {isFromDashboard ? '✓ Tutup' : '✓ Selesai'}
           </button>
         </div>
       </div>
@@ -118,15 +119,15 @@ export default function AgreementPage() {
       {/* Main Content */}
       <div className="max-w-3xl mx-auto px-6 py-8 pb-16">
         {/* Letterhead */}
-        <div style={{ background: 'linear-gradient(135deg, rgba(6,182,212,.04) 0%, rgba(10,10,15,.5) 100%)', borderColor: 'rgba(6,182,212,.2)' }} className="border rounded-3xl p-8 mb-8 relative overflow-hidden">
-          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-gradient-radial from-cyan-500/15 to-transparent pointer-events-none"></div>
+        <div style={{ background: 'linear-gradient(135deg, #0d1a1a 0%, #0a0a0f 100%)', borderColor: 'rgba(6,182,212,.2)' }} className="border rounded-3xl p-8 mb-8 relative overflow-hidden">
+          <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full" style={{ background: 'radial-gradient(circle, rgba(6,182,212,.2), transparent 70%)', pointerEvents: 'none' }}></div>
           
           <div className="relative z-10">
             <div className="flex items-start justify-between gap-6 mb-6">
               <div className="flex items-center gap-3">
                 <div style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)', color: '#fff' }} className="w-12 h-12 rounded-2xl flex items-center justify-center text-sm font-black">SY</div>
                 <div>
-                  <div className="text-2xl font-black" style={{ color: COLORS.text }}>SYNERA</div>
+                  <div className="text-2xl font-black" style={{ color: '#fff' }}>SYNERA</div>
                   <div className="text-xs" style={{ color: COLORS.text3 }}>Integrated Business Management System</div>
                 </div>
               </div>
@@ -138,7 +139,7 @@ export default function AgreementPage() {
             </div>
             
             <div style={{ borderColor: 'rgba(6,182,212,.2)' }} className="border-b pb-6 mb-6">
-              <h1 className="text-3xl font-black mb-2" style={{ color: COLORS.text }}>
+              <h1 className="text-3xl font-black mb-2" style={{ color: '#fff', letterSpacing: '-0.025em' }}>
                 Agreement Implementasi dan<br />Langganan Sistem Bisnis
               </h1>
               <p className="text-sm" style={{ color: COLORS.text2 }}>
@@ -152,11 +153,11 @@ export default function AgreementPage() {
               {/* Party 1 */}
               <div style={{ backgroundColor: COLORS.bg2, borderColor: COLORS.border }} className="border rounded-2xl p-5">
                 <div style={{ backgroundColor: COLORS.cyanDim, borderColor: COLORS.cyan + '4d', color: COLORS.cyan }} className="text-xs font-bold px-3 py-1 rounded-lg inline-block mb-4 border">Pihak Pertama — Penyedia</div>
-                <h3 className="font-black mb-4" style={{ color: COLORS.text }}>PT. Pintar Bisnis Indonesia</h3>
+                <h3 className="font-black mb-4" style={{ color: COLORS.text }}>PT. Next Technology Nusantara</h3>
                 <div className="space-y-2 text-sm">
                   <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Produk</span><span style={{ color: COLORS.text2 }}>SYNERA ERP</span></div>
                   <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Alamat</span><span style={{ color: COLORS.text2 }}>Jl. Contoh No. 1, Jakarta</span></div>
-                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Diwakili</span><span style={{ color: COLORS.text2 }}>[Nama Direktur]</span></div>
+                  <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Diwakili</span><span style={{ color: COLORS.text2 }}>Yoga Tekat Pambudi</span></div>
                   <div><span style={{ color: COLORS.text3 }} className="font-semibold min-w-24 inline-block">Jabatan</span><span style={{ color: COLORS.text2 }}>Direktur Utama</span></div>
                 </div>
                 <div style={{ borderColor: COLORS.border, color: COLORS.text3 }} className="border-t mt-4 pt-3 text-xs italic">
@@ -351,11 +352,11 @@ export default function AgreementPage() {
             {/* Party 1 Sig */}
             <div className="text-center">
               <div style={{ color: COLORS.cyan }} className="text-xs font-bold uppercase tracking-widest mb-3">Pihak Pertama</div>
-              <div className="font-semibold mb-6" style={{ color: COLORS.text }}>PT. Pintar Bisnis Indonesia</div>
+              <div className="font-semibold mb-6" style={{ color: COLORS.text }}>PT. Next Technology Nusantara</div>
               <div style={{ borderColor: COLORS.border, backgroundColor: COLORS.bg2 }} className="border-2 border-dashed rounded-lg h-24 mb-4 flex items-center justify-center">
                 <span style={{ color: COLORS.text3 }} className="text-sm">Tanda tangan</span>
               </div>
-              <div className="font-semibold" style={{ color: COLORS.text }}>[Nama Direktur]</div>
+              <div className="font-semibold" style={{ color: COLORS.text }}>Yoga Tekat Pambudi</div>
               <div className="text-xs" style={{ color: COLORS.text3 }}>Direktur Utama</div>
               <div className="text-xs mt-2" style={{ color: COLORS.text3 }}>{safeData.date}</div>
             </div>

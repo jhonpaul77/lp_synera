@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
 export default function IndexPage() {
@@ -99,7 +99,7 @@ export default function IndexPage() {
             {/* CTA Buttons */}
             <div className="flex gap-3 justify-center mb-10 flex-wrap">
               <button 
-                onClick={() => navigate('/registrasi')}
+                onClick={() => navigate({ to: '/registrasi' })}
                 className="font-bold px-8 py-3 rounded-xl transition transform"
                 style={{ 
                   background: '#06b6d4', 
